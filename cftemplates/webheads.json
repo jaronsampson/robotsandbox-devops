@@ -1,0 +1,276 @@
+{
+  "Description" : "Two nginx web servers behind an ELB",
+
+  "Parameters" : {
+
+    "KeyName" : {
+      "Description" : "Name of an existing EC2 KeyPair to enable SSH access to the instances",
+      "Type" : "AWS::EC2::KeyPair::KeyName"
+    },
+
+    "VpcId" : {
+      "Description" : "Id of VPC to create the ELB's SecurityGroup in",
+      "Default" : "vpc-f452808d",
+      "Type" : "String"
+    },
+
+    "InstanceType" : {
+      "Description" : "Platform server EC2 instance type",
+      "Type" : "String",
+      "Default" : "t2.micro",
+      "AllowedValues" : [ "t2.micro","t2.small","t2.medium","m3.medium", "m3.large","m3.xlarge","m3.2xlarge","c3.large","c3.xlarge","c3.2xlarge","c3.4xlarge","c3.8xlarge","r3.large","r3.xlarge","r3.2xlarge","r3.4xlarge","r3.8xlarge","i2.xlarge","i2.2xlarge","i2.4xlarge","i2.8xlarge","hs1.8xlarge"],
+      "ConstraintDescription" : "must be a valid EC2 instance type."
+    },
+
+    "Webhead1Ip" : {
+      "Description" : "IP of Webhead1",
+      "Type" : "String",
+      "Default" : "10.0.128.10",
+      "AllowedPattern" : "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
+    },
+
+    "Webhead2Ip" : {
+      "Description" : "IP of Webhead2",
+      "Type" : "String",
+      "Default" : "10.0.129.10",
+      "AllowedPattern" : "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
+    }
+  },
+
+  "Mappings" : {
+
+    "Images" : {
+      "TT-us-east1" : {"AMI" : "ami-ad4b33bb"}
+    },
+
+    "SecurityGroups" : {
+      "webhead" : { "id" : "sg-d7c3cea9"}
+    },
+
+    "Subnets" : {
+      "prv-use1a" : { "id" : "subnet-358b2e19", "public" : "subnet-999530b5"},
+      "prv-use1b" : { "id" : "subnet-72c8583a", "public" : "subnet-f9c454b1"},
+      "pub-use1a" : { "id" : "subnet-999530b5", "public" : ""},
+      "pub-use1b" : { "id" : "subnet-f9c454b1", "public" : ""}
+    }
+  },
+
+  "Resources" : {
+
+    "InstanceProfile" : {
+        "Type" : "AWS::IAM::InstanceProfile",
+        "Properties" : {
+            "Path" : "/",
+            "Roles" : ["role-cloudformation"]
+        }
+    },
+
+    "Webhead1" : {
+      "Type" : "AWS::EC2::Instance",
+      "Properties" : {
+        "KeyName" : { "Ref" : "KeyName" },
+        "ImageId" : { "Fn::FindInMap" : [ "Images", "TT-us-east1", "AMI" ] },
+        "InstanceType" : { "Ref" : "InstanceType" },
+        "NetworkInterfaces" : [{
+          "GroupSet"                 : [
+            { "Fn::FindInMap" : [ "SecurityGroups", "webhead", "id" ] }
+          ],
+          "DeviceIndex"              : "0",
+          "DeleteOnTermination"      : "true",
+          "SubnetId"                 : { "Fn::FindInMap" : [ "Subnets", "prv-use1a", "id" ] },
+          "PrivateIpAddress"         : { "Ref" : "Webhead1Ip" }
+        }],
+        "Tags" : [
+          { "Key" : "Name", "Value" : { "Fn::Join" : [ "" , [ { "Ref": "AWS::StackName" } , "-Webhead1" ] ] } }
+        ],
+        "UserData" : {
+          "Fn::Base64" : {
+            "Fn::Join" : [
+              "",
+              [
+              "#!/bin/bash -ex","\n",
+              "echo \"%admin ALL=(ALL) NOPASSWD: ALL\" > /etc/sudoers.d/99-sudo-nopwd-admin","\n",
+              "chmod 0440 /etc/sudoers.d/99-sudo-nopwd-admin","\n",
+              "apt-get install -y python-pip","\n",
+              "easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz ","\n",
+              "/usr/local/bin/cfn-init -s ",
+              { "Ref" : "AWS::StackName" },
+              " --configsets initbuild",
+              " --region ",
+              { "Ref" : "AWS::Region" },
+              " -r Webhead1", "\n"
+              ]
+            ]
+          }
+        },
+        "IamInstanceProfile" : {"Ref" : "InstanceProfile"}
+      },
+      "Metadata" : {
+        "Comment" : "Webhead1 Metadata",
+        "AWS::CloudFormation::Authentication" : {
+          "default" : {
+            "type" : "S3",
+            "buckets" : ["robotsandbox-cloudformation"],
+            "roleName" : "role-cloudformation"
+          }
+        },
+        "AWS::CloudFormation::Init" : {
+          "configSets" : {
+            "initbuild" : [ "hosts_fixup", "apt_setup", "package_install" ]
+          },
+          "hosts_fixup" : {
+            "commands" : {
+              "1_etc_hosts_fixup" : {
+                "command" : "echo 127.0.0.1 `hostname` | sudo tee -a /etc/hosts"
+              }
+            }
+          },
+          "apt_setup" : {
+            "commands" : {
+              "1_update_apt" : {
+                "command" : "sudo apt-get update"
+              }
+            }
+          },
+          "package_install" : {
+            "packages" : {
+              "apt" : {
+                  "ntp" : [],
+                  "ncdu" : [],
+                  "htop" : [],
+                  "git" : [],
+                  "nginx" : []
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "Webhead2" : {
+      "Type" : "AWS::EC2::Instance",
+      "Properties" : {
+        "KeyName" : { "Ref" : "KeyName" },
+        "ImageId" : { "Fn::FindInMap" : [ "Images", "TT-us-east1", "AMI" ] },
+        "InstanceType" : { "Ref" : "InstanceType" },
+        "NetworkInterfaces" : [{
+          "GroupSet"                 : [
+            { "Fn::FindInMap" : [ "SecurityGroups", "webhead", "id" ] }
+          ],
+          "DeviceIndex"              : "0",
+          "DeleteOnTermination"      : "true",
+          "SubnetId"                 : { "Fn::FindInMap" : [ "Subnets", "prv-use1b", "id" ] },
+          "PrivateIpAddress"         : { "Ref" : "Webhead2Ip" }
+        }],
+        "Tags" : [
+          { "Key" : "Name", "Value" : { "Fn::Join" : [ "" , [ { "Ref": "AWS::StackName" } , "-Webhead2" ] ] } }
+        ],
+        "UserData" : {
+          "Fn::Base64" : {
+            "Fn::Join" : [
+              "",
+              [
+              "#!/bin/bash -ex","\n",
+              "echo \"%admin ALL=(ALL) NOPASSWD: ALL\" > /etc/sudoers.d/99-sudo-nopwd-admin","\n",
+              "chmod 0440 /etc/sudoers.d/99-sudo-nopwd-admin","\n",
+              "apt-get install -y python-pip","\n",
+              "easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz ","\n",
+              "/usr/local/bin/cfn-init -s ",
+              { "Ref" : "AWS::StackName" },
+              " --configsets initbuild",
+              " --region ",
+              { "Ref" : "AWS::Region" },
+              " -r Webhead2", "\n"
+              ]
+            ]
+          }
+        },
+        "IamInstanceProfile" : {"Ref" : "InstanceProfile"}
+      },
+      "Metadata" : {
+        "Comment" : "Webhead2 Metadata",
+        "AWS::CloudFormation::Authentication" : {
+          "default" : {
+            "type" : "S3",
+            "buckets" : ["robotsandbox-cloudformation"],
+            "roleName" : "role-cloudformation"
+          }
+        },
+        "AWS::CloudFormation::Init" : {
+          "configSets" : {
+            "initbuild" : [ "hosts_fixup", "apt_setup", "package_install" ]
+          },
+          "hosts_fixup" : {
+            "commands" : {
+              "1_etc_hosts_fixup" : {
+                "command" : "echo 127.0.0.1 `hostname` | sudo tee -a /etc/hosts"
+              }
+            }
+          },
+          "apt_setup" : {
+            "commands" : {
+              "1_update_apt" : {
+                "command" : "sudo apt-get update"
+              }
+            }
+          },
+          "package_install" : {
+            "packages" : {
+              "apt" : {
+                  "ntp" : [],
+                  "ncdu" : [],
+                  "htop" : [],
+                  "git" : [],
+                  "nginx" : []
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "LoadBalancerSecurityGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupDescription" : "Allow http traffic",
+          "VpcId" : {"Ref" : "VpcId"},
+          "SecurityGroupIngress" : [{
+            "IpProtocol" : "tcp",
+            "FromPort" : "80",
+            "ToPort" : "80",
+            "CidrIp" : "0.0.0.0/0"
+          }]
+       }
+    },
+
+    "LoadBalancer" : {
+      "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties" : {
+        "Subnets" : [
+          {"Fn::FindInMap" : [ "Subnets", "pub-use1a", "id" ]},
+          {"Fn::FindInMap" : [ "Subnets", "pub-use1b", "id" ]}
+        ],
+        "Listeners" : [
+          {
+          "LoadBalancerPort" : "80",
+          "InstancePort" : "80",
+          "InstanceProtocol" : "HTTP",
+          "Protocol" : "HTTP"
+          }
+        ],
+        "HealthCheck" : {
+          "Target" : "TCP:80",
+          "HealthyThreshold" : "5",
+          "UnhealthyThreshold" : "3",
+          "Interval" : "12",
+          "Timeout" : "5"
+        },
+        "Instances" : [ { "Ref" : "Webhead1" }, { "Ref" : "Webhead2" } ],
+        "SecurityGroups" : [ { "Ref" : "LoadBalancerSecurityGroup" } ],
+        "Tags" : [
+          { "Key" : "Name", "Value" : "WebheadLoadBalancer" }
+        ]
+      }
+    }
+  }
+}
