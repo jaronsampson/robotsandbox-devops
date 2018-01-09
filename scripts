@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+cd
+sudo apt-get install gcc make autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev nodejs git-core curl libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev python-software-properties libffi-dev ca-certificates
+command curl -sSL https://rvm.io/mpapis.asc | sudo gpg --import -
+\curl -sSL https://get.rvm.io | sudo bash -s stable
+sudo usermod -a -G rvm ubuntu
+sudo usermod -a -G rvm root
+echo "export rvmsudo_secure_path=1" | sudo tee -a /etc/profile.d/rvm.sh
+source /etc/profile.d/rvm.sh
+git clone https://github.com/rbenv/rbenv.git ~/.rbenv
+echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
+echo 'eval "$(rbenv init -)"' >> ~/.bashrc
+exec $SHELL
+git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
+echo 'export PATH="$HOME/.rbenv/plugins/ruby-build/bin:$PATH"' >> ~/.bashrc
+exec $SHELL
+rbenv install 2.5.0
+rbenv global 2.5.0
+ruby -v
+rvmsudo gem install jekyll --no-rdoc --no-ri

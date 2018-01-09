@@ -40,7 +40,7 @@
   "Mappings" : {
 
     "Images" : {
-      "TT-us-east1" : {"AMI" : "ami-ad4b33bb"}
+      "TT-us-east1" : {"AMI" : "ami-08c35d72"}
     },
 
     "SecurityGroups" : {
@@ -91,6 +91,7 @@
               "#!/bin/bash -ex","\n",
               "echo \"%admin ALL=(ALL) NOPASSWD: ALL\" > /etc/sudoers.d/99-sudo-nopwd-admin","\n",
               "chmod 0440 /etc/sudoers.d/99-sudo-nopwd-admin","\n",
+              "apt-get update","\n",
               "apt-get install -y python-pip","\n",
               "easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz ","\n",
               "/usr/local/bin/cfn-init -s ",
@@ -128,7 +129,7 @@
           "apt_setup" : {
             "commands" : {
               "1_update_apt" : {
-                "command" : "sudo apt-get update"
+                "command" : "apt-get update"
               }
             }
           },
@@ -139,7 +140,8 @@
                   "ncdu" : [],
                   "htop" : [],
                   "git" : [],
-                  "nginx" : []
+                  "nginx" : [],
+                  "nodejs" : []
               }
             }
           }
@@ -173,6 +175,7 @@
               "#!/bin/bash -ex","\n",
               "echo \"%admin ALL=(ALL) NOPASSWD: ALL\" > /etc/sudoers.d/99-sudo-nopwd-admin","\n",
               "chmod 0440 /etc/sudoers.d/99-sudo-nopwd-admin","\n",
+              "apt-get update","\n",
               "apt-get install -y python-pip","\n",
               "easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz ","\n",
               "/usr/local/bin/cfn-init -s ",
@@ -210,7 +213,7 @@
           "apt_setup" : {
             "commands" : {
               "1_update_apt" : {
-                "command" : "sudo apt-get update"
+                "command" : "apt-get update"
               }
             }
           },
@@ -221,7 +224,8 @@
                   "ncdu" : [],
                   "htop" : [],
                   "git" : [],
-                  "nginx" : []
+                  "nginx" : [],
+                  "nodejs" : []
               }
             }
           }
