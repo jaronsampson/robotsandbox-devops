@@ -15,8 +15,4 @@
 
   roles:
     - role: ruby
-
-  tasks:
-    - name: Install jekyll
-      become: true
-      command: gem install jekyll --no-rdoc --no-ri
+    - role: webserver

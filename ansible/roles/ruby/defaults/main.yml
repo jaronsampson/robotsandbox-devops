@@ -7,9 +7,6 @@ ruby_install_bundler: true
 # A list of Ruby gems to install.
 ruby_install_gems: []
 
-# The user account under which Ruby gems will be installed.
-ruby_install_gems_user: "{{ ansible_user }}"
-
 # If set to TRUE, ruby will be installed from source, using the version set with
 # the 'ruby_version' variable instead of using a package.
 ruby_install_from_source: true
