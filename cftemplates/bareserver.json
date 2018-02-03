@@ -1,0 +1,147 @@
+{
+  "Description" : "A bare instance",
+
+  "Parameters" : {
+
+    "KeyName" : {
+      "Description" : "Name of an existing EC2 KeyPair to enable SSH access to the instances",
+      "Type" : "AWS::EC2::KeyPair::KeyName"
+    },
+
+    "InstanceType" : {
+      "Description" : "Platform server EC2 instance type",
+      "Type" : "String",
+      "Default" : "t2.micro",
+      "AllowedValues" : [ "t2.micro","t2.small","t2.medium","m3.medium", "m3.large","m3.xlarge","m3.2xlarge","c3.large","c3.xlarge","c3.2xlarge","c3.4xlarge","c3.8xlarge","r3.large","r3.xlarge","r3.2xlarge","r3.4xlarge","r3.8xlarge","i2.xlarge","i2.2xlarge","i2.4xlarge","i2.8xlarge","hs1.8xlarge"],
+      "ConstraintDescription" : "must be a valid EC2 instance type."
+    },
+
+    "InstanceIp" : {
+      "Description" : "IP of Instance",
+      "Type" : "String",
+      "Default" : "10.0.0.0",
+      "AllowedPattern" : "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
+    },
+
+    "InboundIp" : {
+      "Description" : "The IP to allow shell connections from",
+      "Type" : "String",
+      "Default" : "10.0.0.0",
+      "AllowedPattern" : "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
+    },
+    "VpcId" : {
+      "Description" : "Id of VPC to create the ELB's SecurityGroup in",
+      "Default" : "vpc-f452808d",
+      "Type" : "String"
+    }
+  },
+
+  "Mappings" : {
+
+    "Images" : {
+      "TT-us-east1" : {"AMI" : "ami-08c35d72"}
+    },
+
+    "Subnets" : {
+      "prv-use1a" : { "id" : "subnet-358b2e19", "public" : "subnet-999530b5"},
+      "prv-use1b" : { "id" : "subnet-72c8583a", "public" : "subnet-f9c454b1"},
+      "pub-use1a" : { "id" : "subnet-999530b5", "public" : ""},
+      "pub-use1b" : { "id" : "subnet-f9c454b1", "public" : ""}
+    }
+  },
+
+  "Resources" : {
+
+    "Instance" : {
+      "DependsOn" : { "Ref" : "SecurityGroup" },
+      "Type" : "AWS::EC2::Instance",
+      "Properties" : {
+        "KeyName" : { "Ref" : "KeyName" },
+        "ImageId" : { "Fn::FindInMap" : [ "Images", "TT-us-east1", "AMI" ] },
+        "InstanceType" : { "Ref" : "InstanceType" },
+        "NetworkInterfaces" : [{
+          "GroupSet"                 : [
+            { "Ref" : "SecurityGroup" }
+          ],
+          "DeviceIndex"              : "0",
+          "DeleteOnTermination"      : "true",
+          "SubnetId"                 : { "Fn::FindInMap" : [ "Subnets", "prv-use1a", "id" ] },
+          "PrivateIpAddress"         : { "Ref" : "InstanceIp" }
+        }],
+        "Tags" : [
+          { "Key" : "Name", "Value" : { "Fn::Join" : [ "" , [ { "Ref": "AWS::StackName" } , "-Instance" ] ] } },
+          { "Key" : "AnsibleTarget", "Value" : "1" },
+          { "Key" : "Role", "Value" : "Unspecified" }
+        ],
+        "UserData" : {
+          "Fn::Base64" : {
+            "Fn::Join" : [
+              "",
+              [
+              "#!/bin/bash -ex","\n",
+              "echo \"%admin ALL=(ALL) NOPASSWD: ALL\" > /etc/sudoers.d/99-sudo-nopwd-admin","\n",
+              "chmod 0440 /etc/sudoers.d/99-sudo-nopwd-admin","\n",
+              "apt-get update","\n",
+              "apt-get install -y python-pip","\n",
+              "easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz ","\n",
+              "/usr/local/bin/cfn-init -s ",
+              { "Ref" : "AWS::StackName" },
+              " --configsets initbuild",
+              " --region ",
+              { "Ref" : "AWS::Region" },
+              " -r Instance", "\n"
+              ]
+            ]
+          }
+        }
+      },
+      "Metadata" : {
+        "Comment" : "Instance Metadata",
+        "AWS::CloudFormation::Init" : {
+          "configSets" : {
+            "initbuild" : [ "hosts_fixup", "apt_setup", "package_install" ]
+          },
+          "hosts_fixup" : {
+            "commands" : {
+              "1_etc_hosts_fixup" : {
+                "command" : "echo 127.0.0.1 `hostname` | sudo tee -a /etc/hosts"
+              }
+            }
+          },
+          "apt_setup" : {
+            "commands" : {
+              "1_update_apt" : {
+                "command" : "sudo apt-get update"
+              }
+            }
+          },
+          "package_install" : {
+            "packages" : {
+              "apt" : {
+                  "ntp" : [],
+                  "ncdu" : [],
+                  "htop" : [],
+                  "git" : []
+              }
+            }
+          }
+        }
+      }
+    },
+    "SecurityGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupDescription" : "Just ssh from a specific IP",
+        "VpcId" : { "Ref" : "VpcId" },
+        "SecurityGroupIngress" : [
+          {
+          "IpProtocol" : "tcp",
+          "FromPort" : "22",
+          "ToPort" : "22",
+          "CidrIp" : { "Fn::Join" : [ "", [ { "Ref" : "InboundIp" }, "/32"] ] }
+          }
+        ]
+      }
+    }
+  }
+}

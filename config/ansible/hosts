@@ -1,0 +1,7 @@
+all:
+  children:
+    tag_Role_Webhead:
+      hosts:
+        rs-wh-webhead0:
+          ansible_host: localwebhead
+          ansible_user: ubuntu

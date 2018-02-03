@@ -81,7 +81,9 @@
           "PrivateIpAddress"         : { "Ref" : "Webhead1Ip" }
         }],
         "Tags" : [
-          { "Key" : "Name", "Value" : { "Fn::Join" : [ "" , [ { "Ref": "AWS::StackName" } , "-Webhead1" ] ] } }
+          { "Key" : "Name", "Value" : { "Fn::Join" : [ "" , [ { "Ref": "AWS::StackName" } , "-Webhead1" ] ] } },
+          { "Key" : "AnsibleTarget", "Value" : "1" },
+          { "Key" : "Role", "Value" : "Webhead" }
         ],
         "UserData" : {
           "Fn::Base64" : {
@@ -165,7 +167,9 @@
           "PrivateIpAddress"         : { "Ref" : "Webhead2Ip" }
         }],
         "Tags" : [
-          { "Key" : "Name", "Value" : { "Fn::Join" : [ "" , [ { "Ref": "AWS::StackName" } , "-Webhead2" ] ] } }
+          { "Key" : "Name", "Value" : { "Fn::Join" : [ "" , [ { "Ref": "AWS::StackName" } , "-Webhead2" ] ] } },
+          { "Key" : "AnsibleTarget", "Value" : "1" },
+          { "Key" : "Role", "Value" : "Webhead" }
         ],
         "UserData" : {
           "Fn::Base64" : {

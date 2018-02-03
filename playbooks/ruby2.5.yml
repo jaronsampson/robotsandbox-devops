@@ -1,0 +1,20 @@
+---
+- hosts: tag_Role_Webhead
+  become: true
+  
+  vars:
+    ruby_install_from_source: true
+    ruby_download_url: https://cache.ruby-lang.org/pub/ruby/2.5/ruby-2.5.0.tar.gz
+    ruby_version: 2.5.0
+    ruby_install_gems_user: root
+    ruby_install_gems:
+      - jekyll
+
+  pre_tasks:
+    - name: Update apt cache.
+      become: true
+      apt: update_cache=yes cache_valid_time=600
+      when: ansible_os_family == 'Debian'
+
+  roles:
+    - role: geerlingguy.ruby
