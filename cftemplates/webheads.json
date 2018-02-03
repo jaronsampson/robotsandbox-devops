@@ -142,7 +142,6 @@
                   "ncdu" : [],
                   "htop" : [],
                   "git" : [],
-                  "nginx" : [],
                   "nodejs" : []
               }
             }
@@ -228,7 +227,6 @@
                   "ncdu" : [],
                   "htop" : [],
                   "git" : [],
-                  "nginx" : [],
                   "nodejs" : []
               }
             }
