@@ -1,0 +1,7 @@
+---
+http_port: 80
+
+robotsandbox_tld: robotsandbox.com
+robotsandbox_webcode: /usr/share/nginx/html/robotsandbox-webcode
+robotsandbox_webroot: /usr/share/nginx/html/robotsandbox-webcode/webroot
+robotsandbox_siteroot: /usr/share/nginx/html/robotsandbox-webcode/webroot/_site

@@ -4,4 +4,5 @@ all:
       hosts:
         rs-wh-webhead0:
           ansible_host: localwebhead
-          ansible_user: ubuntu
+  vars:
+    ansible_user: ubuntu

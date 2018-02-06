@@ -119,7 +119,7 @@
         },
         "AWS::CloudFormation::Init" : {
           "configSets" : {
-            "initbuild" : [ "hosts_fixup", "apt_setup", "package_install" ]
+            "initbuild" : [ "hosts_fixup", "apt_setup", "package_install", "user_files" ]
           },
           "hosts_fixup" : {
             "commands" : {
@@ -143,6 +143,16 @@
                   "htop" : [],
                   "git" : [],
                   "nodejs" : []
+              }
+            }
+          },
+          "user_files" : {
+              "files" : {
+                  "/home/ubuntu/.ssh/js.github.rsa" : {
+                      "source" : "https://s3.amazonaws.com/robotsandbox-cloudformation/keys/js.github.rsa",
+                      "mode" : "000600",
+                      "owner" : "ubuntu",
+                      "group" : "admin"
               }
             }
           }
@@ -204,7 +214,7 @@
         },
         "AWS::CloudFormation::Init" : {
           "configSets" : {
-            "initbuild" : [ "hosts_fixup", "apt_setup", "package_install" ]
+            "initbuild" : [ "hosts_fixup", "apt_setup", "package_install", "user_files" ]
           },
           "hosts_fixup" : {
             "commands" : {
@@ -228,6 +238,16 @@
                   "htop" : [],
                   "git" : [],
                   "nodejs" : []
+              }
+            }
+          },
+          "user_files" : {
+              "files" : {
+                  "/home/ubuntu/.ssh/js.github.rsa" : {
+                      "source" : "https://s3.amazonaws.com/robotsandbox-cloudformation/keys/js.github.rsa",
+                      "mode" : "000600",
+                      "owner" : "ubuntu",
+                      "group" : "admin"
               }
             }
           }

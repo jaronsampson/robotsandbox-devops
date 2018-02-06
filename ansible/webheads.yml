@@ -1,6 +1,5 @@
 ---
 - hosts: tag_Role_Webhead
-  become: true
 
   vars:
     ruby_install_from_source: true
@@ -14,5 +13,5 @@
       when: ansible_os_family == 'Debian'
 
   roles:
-    - role: ruby
-    - role: webserver
+      - { role: ruby, become: true }
+      - { role: webserver, become: true }

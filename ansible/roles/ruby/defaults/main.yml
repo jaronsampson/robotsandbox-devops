@@ -2,7 +2,7 @@
 workspace: /root
 
 # Whether this role should install Bundler.
-ruby_install_bundler: true
+ruby_install_bundler: false
 
 # A list of Ruby gems to install.
 ruby_install_gems: []
@@ -13,5 +13,4 @@ ruby_install_from_source: true
 ruby_download_url: https://cache.ruby-lang.org/pub/ruby/2.5/ruby-2.5.0.tar.gz
 ruby_version: 2.5.0
 
-# Default should usually work, but this will be overridden on Ubuntu 14.04.
-ruby_rubygems_package_name: rubygems
+ruby_rubygems_package_name: rubygems-integration

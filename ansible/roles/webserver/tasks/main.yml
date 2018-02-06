@@ -1,8 +1,75 @@
 ---
-- name: Update apt cache
+- name: Apt cache updated
   apt: update_cache=yes
 
-- name: Install nginx
+- name: Nginx is installed
   apt:
     name: nginx
     state: present
+
+- name: ensure known hosts
+  file:
+    path: /home/ubuntu/.ssh/known_hosts
+    owner: ubuntu
+    group: ubuntu
+    state: touch
+    mode: 0644
+
+- name: setup group for root of web roots
+  group:
+    name: www-data
+    state: present
+
+- name: set group and mode for root of web roots
+  file:
+    path: /usr/share/nginx/html
+    group: www-data
+    mode: 0775
+
+- name: add ubuntu to www-data group
+  user:
+    name: ubuntu
+    state: present
+    groups: www-data
+    append: yes
+
+- name: remove github.com from known host
+  become: false
+  command: ssh-keygen -R github.com
+
+- name: ensure github.com in known host
+  become: false
+  shell: ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+
+- name: checkout webcode
+  become: false
+  git:
+    repo: git@github.com:jaronsampson/robotsandbox-webcode.git
+    dest: "{{ robotsandbox_webcode }}"
+    key_file: /home/ubuntu/.ssh/js.github.rsa
+    version: latest_release
+
+- name: build static site
+  become: false
+  command: jekyll build chdir='{{ robotsandbox_webroot }}'
+
+- name: setup site configurations
+  template:
+    src: templates/nginx_config_robotsandbox.com
+    dest: /etc/nginx/sites-available/robotsandbox.com
+  notify: restart nginx
+
+- name: enable sites
+  file:
+    src: /etc/nginx/sites-enabled/robotsandbox.com
+    dest: /etc/nginx/sites-available/robotsandbox.com
+    state: link
+    force: yes
+  notify: restart nginx
+
+#- name: slack notificiation
+#  slack:
+#    token: T0NUKL857/B95B808KY/YQmO0HWDZBBmcWaWB2CSKqYH
+#    msg: Complete
+#    channel: #ansible
+#  delegate_to: localhost
