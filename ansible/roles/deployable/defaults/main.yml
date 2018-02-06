@@ -11,4 +11,4 @@ websites:
     refspec: latest_release
   jaronsampson:
     tld: jaronsampson.com
-    refspec: latest.release
+    refspec: latest_release

@@ -13,5 +13,6 @@
       when: ansible_os_family == 'Debian'
 
   roles:
-      - { role: ruby, become: true }
+      - { role: jekyll, become: true }
       - { role: webserver, become: true }
+      - { role: deployable, become: false }
