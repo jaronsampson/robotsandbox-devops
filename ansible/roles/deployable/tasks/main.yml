@@ -10,6 +10,7 @@
     dest: "{{ nginx_data }}{{ item.value.tld }}{{ webcode }}"
     key_file: /home/ubuntu/.ssh/js.github.rsa
     version: "{{ item.value.refspec }}"
+    force: yes
   with_dict: "{{ websites }}"
 
 - name: build static site
