@@ -1,7 +1,12 @@
 ---
 http_port: 80
+nginx_data: /usr/share/nginx/html/
+webcode: -webcode
+webroot: -webcode/webroot
+siteroot: -webcode/webroot/_site
 
-robotsandbox_tld: robotsandbox.com
-robotsandbox_webcode: /usr/share/nginx/html/robotsandbox-webcode
-robotsandbox_webroot: /usr/share/nginx/html/robotsandbox-webcode/webroot
-robotsandbox_siteroot: /usr/share/nginx/html/robotsandbox-webcode/webroot/_site
+websites:
+  robotsandbox:
+    tld: robotsandbox.com
+  jaronsampson:
+    tld: jaronsampson.com

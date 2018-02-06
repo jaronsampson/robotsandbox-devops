@@ -2,10 +2,10 @@
 server {
         listen {{ http_port }};
 
-        root {{ robotsandbox_siteroot }};
+        root {{ nginx_data }}{{ item.value.tld }}{{ siteroot }};
         index index.html index.htm;
 
-        server_name {{ robotsandbox_tld }} www.{{ robotsandbox_tld }};
+        server_name {{ item.value.tld }} www.{{ item.value.tld }};
 
         location / {
                 # First attempt to serve request as file, then
