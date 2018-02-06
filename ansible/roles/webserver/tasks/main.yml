@@ -41,14 +41,13 @@
   become: false
   shell: ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 
-
 - name: checkout webcode
   become: false
   git:
     repo: git@github.com:jaronsampson/{{ item.key }}-webcode.git
     dest: "{{ nginx_data }}{{ item.value.tld }}{{ webcode }}"
     key_file: /home/ubuntu/.ssh/js.github.rsa
-    version: latest_release
+    version: {{ item.value.refspec }}
   with_dict: "{{ websites }}"
 
 - name: build static site
@@ -71,10 +70,3 @@
     force: yes
   with_dict: "{{ websites }}"
   notify: restart nginx
-
-#- name: slack notificiation
-#  slack:
-#    token: T0NUKL857/B95B808KY/YQmO0HWDZBBmcWaWB2CSKqYH
-#    msg: Complete
-#    channel: #ansible
-#  delegate_to: localhost

@@ -8,5 +8,7 @@ siteroot: -webcode/webroot/_site
 websites:
   robotsandbox:
     tld: robotsandbox.com
+    refspec: latest_release
   jaronsampson:
     tld: jaronsampson.com
+    refspec: latest.release
